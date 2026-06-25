@@ -9,6 +9,7 @@ if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
 }
 
 $user_login  = $_SESSION['user_email'] ?? 'Viewer';
+$user_name   = $_SESSION['username'] ?? $user_login; 
 $user_role   = $_SESSION['role'] ?? 'viewer';
 $cabang_user = $_SESSION['cabang'] ?? '';
 
@@ -41,40 +42,38 @@ $data_pengumuman = mysqli_query($conn, "SELECT * FROM pengumuman ORDER BY id DES
 
 // 7. AMBIL DATA REQUEST STOK
 if ($user_role == 'admin') {
-    $q_request = mysqli_query($conn, "SELECT * FROM request_barang WHERE status_request = 'Pending' ORDER BY tanggal_lapor DESC LIMIT 5");
+    $q_request = mysqli_query($conn, "SELECT * FROM request_barang ORDER BY tanggal_lapor DESC LIMIT 5");
 } else {
     $q_request = mysqli_query($conn, "SELECT * FROM request_barang WHERE dari_cabang = '$cabang_user' ORDER BY tanggal_lapor DESC LIMIT 5");
 }
 
 // 8. AMBIL DATA LOG AKTIVITAS (DINAMIS SESUAI ROLE)
 if ($user_role == 'admin') {
-    // Admin pantau semua aktivitas user
     $q_log = mysqli_query($conn, "SELECT * FROM log_aktivitas ORDER BY tanggal_dibuat DESC LIMIT 5");
 } else {
-    // Karyawan cuma lihat aktivitas dia sendiri
-    $q_log = mysqli_query($conn, "SELECT * FROM log_aktivitas WHERE username = '$user_login' ORDER BY tanggal_dibuat DESC LIMIT 5");
+    $q_log = mysqli_query($conn, "SELECT * FROM log_aktivitas WHERE username = '$user_name' ORDER BY tanggal_dibuat DESC LIMIT 5");
 }
 
-// --- LOGIKA STATUS BANNER DINAMIS TINGKAT DEWA ---
+// --- LOGIKA STATUS BANNER DINAMIS ---
 if ($total_produk == 0) {
     $icon_status  = "fas fa-store-slash";
-    $warna_alert  = "bg-danger text-white"; // Merah
+    $warna_alert  = "bg-danger text-white"; 
     $teks_status  = "<b>Toko Kosong Melompong!</b> Belum ada satupun data barang di katalog cabang ini. Segera tambahkan produk pertama Anda.";
 } elseif ($total_produk > 0 && $total_habis == $total_produk) {
     $icon_status  = "fas fa-box-open";
-    $warna_alert  = "bg-danger text-white"; // Merah
+    $warna_alert  = "bg-danger text-white"; 
     $teks_status  = "<b>Gudang Kosong Total!</b> Seluruh barang di toko telah habis terjual. Segera lakukan restock dan isi toko Anda secepatnya!";
 } elseif ($total_habis > 0) {
     $icon_status  = "fas fa-exclamation-triangle";
-    $warna_alert  = "bg-danger text-white"; // Merah
+    $warna_alert  = "bg-danger text-white"; 
     $teks_status  = "<b>Kondisi Kritis:</b> Terdeteksi ada <b>$total_habis jenis produk</b> yang stoknya kosong. Silakan cek katalog barang!";
 } elseif ($total_menipis > 0) {
     $icon_status  = "fas fa-exclamation-circle";
-    $warna_alert  = "bg-warning text-dark"; // Kuning
+    $warna_alert  = "bg-warning text-dark"; 
     $teks_status  = "<b>Peringatan:</b> Ada <b>$total_menipis jenis produk</b> yang stoknya menipis (sisa 5 atau kurang).";
 } else {
     $icon_status  = "fas fa-check-circle";
-    $warna_alert  = "bg-success text-white"; // Hijau
+    $warna_alert  = "bg-success text-white"; 
     $teks_status  = "<b>Kondisi Gudang Aman:</b> Seluruh produk berstatus tersedia dan siap jual.";
 }
 ?>
@@ -245,7 +244,7 @@ if ($total_produk == 0) {
                             <?php 
                             if ($q_request && mysqli_num_rows($q_request) > 0) {
                                 while ($req = mysqli_fetch_assoc($q_request)) {
-                                    $badge = ($req['status_request'] == 'Pending') ? 'badge-warning' : (($req['status_request'] == 'Disetujui') ? 'badge-success' : 'badge-danger');
+                                    $badge = ($req['status_request'] == 'Pending') ? 'badge-warning' : (($req['status_request'] == 'Disetujui' || $req['status_request'] == 'Selesai') ? 'badge-success' : 'badge-danger');
                             ?>
                                 <tr>
                                     <td class="text-sm font-weight-bold text-muted"><?php echo $req['kode_barang']; ?></td>
@@ -259,11 +258,18 @@ if ($total_produk == 0) {
                                     
                                     <td><span class="badge <?php echo $badge; ?> p-2" style="border-radius: 6px;"><?php echo $req['status_request']; ?></span></td>
                                     
-                                    <td>
+                                    <!-- PERBAIKAN: class="text-nowrap" agar ikon dan tombol tidak terlempar ke bawah -->
+                                    <td class="text-nowrap">
                                         <?php if ($user_role == 'admin'): ?>
-                                            <a href="pages/proses_acc.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-success shadow-sm rounded"><i class="fas fa-check mr-1"></i> Proses Data</a>
+                                            <?php if ($req['status_request'] == 'Pending'): ?>
+                                                <!-- PERBAIKAN: Tombol Edit khusus Admin -->
+                                                <a href="pages/edit_request.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-info shadow-sm rounded mr-1" title="Edit Data"><i class="fas fa-edit"></i></a>
+                                                <a href="pages/proses_acc.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-success shadow-sm rounded"><i class="fas fa-check mr-1"></i> Proses Data</a>
+                                            <?php else: ?>
+                                                <span class="badge badge-light text-muted border mr-1"><i class="fas fa-history"></i> Terekam</span>
+                                                <a href="actions/hapus_request.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-outline-danger shadow-sm rounded" title="Hapus Riwayat" onclick="return confirm('Hapus riwayat permintaan ini?');"><i class="fas fa-trash"></i></a>
+                                            <?php endif; ?>
                                         <?php else: ?>
-                                            
                                             <?php if ($req['status_request'] == 'Disetujui' || $req['status_request'] == 'Dikirim'): ?>
                                                 <div class="mb-1 text-info text-xs font-weight-bold">
                                                     <i class="fas fa-truck text-info mr-1"></i> Sedang Dalam Perjalanan...
@@ -271,6 +277,9 @@ if ($total_produk == 0) {
                                                 <a href="actions/terima_barang.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-primary shadow-sm rounded" onclick="return confirm('PENTING!\n\nJangan klik OK jika barang FISIK belum sampai di toko Anda!\n\nApakah barang benar-benar sudah tiba dan jumlahnya sesuai?');">
                                                     <i class="fas fa-box-open mr-1"></i> Konfirmasi Terima
                                                 </a>
+                                            <?php elseif ($req['status_request'] == 'Selesai' || $req['status_request'] == 'Ditolak'): ?>
+                                                <span class="badge badge-light text-muted border mr-1"><i class="fas fa-check-double"></i> Selesai</span>
+                                                <a href="actions/hapus_request.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-outline-danger shadow-sm rounded" title="Hapus dari daftar" onclick="return confirm('Hapus riwayat ini dari pantauan?');"><i class="fas fa-trash"></i></a>
                                             <?php else: ?>
                                                 <small class="font-italic text-muted d-block mt-1">
                                                     <?php echo !empty($req['pesan_admin']) ? "<i class='fas fa-reply text-success mr-1'></i> ".$req['pesan_admin'] : '<i class="fas fa-clock mr-1"></i> Menunggu...'; ?>
@@ -289,6 +298,10 @@ if ($total_produk == 0) {
                         </tbody>
                     </table>
                 </div>
+              </div>
+              <!-- PERBAIKAN: Footer Lihat Semua Data Request biar bisa lihat Halaman ke-2 dst. -->
+              <div class="card-footer bg-white text-center border-top">
+                <a href="pages/semua_request.php" class="text-danger small font-weight-bold">Lihat Semua Laporan Request <i class="fas fa-arrow-right ml-1"></i></a>
               </div>
             </div>
 
@@ -424,7 +437,10 @@ if ($total_produk == 0) {
                   }
                   ?>
                 </div>
-                
+              </div>
+              <!-- PERBAIKAN: Footer Lihat Semua Aktivitas biar bisa lihat Halaman ke-2 dst. -->
+              <div class="card-footer bg-white text-center border-top">
+                <a href="pages/semua_log.php" class="text-secondary small font-weight-bold">Lihat Semua Aktivitas <i class="fas fa-arrow-right ml-1"></i></a>
               </div>
             </div>
 

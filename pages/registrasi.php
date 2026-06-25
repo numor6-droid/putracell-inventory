@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Putra Cell | Registrasi Baru</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  
+  <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+  
   <style>.toggle-password { cursor: pointer; width: 40px; justify-content: center; }</style>
 </head>
 <body class="hold-transition register-page">
@@ -51,6 +53,11 @@
           <div class="col-12"><button type="submit" class="btn btn-primary btn-block">Daftar Akun</button></div>
         </div>
       </form>
+
+      <p class="mt-3 mb-0 text-center">
+        <a href="login.php" class="text-center">Sudah punya akun? Kembali ke Login</a>
+      </p>
+
     </div>
   </div>
 </div>
