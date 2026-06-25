@@ -4,7 +4,7 @@ include "../config/koneksi.php"; // Panggil koneksi buat update foto ke DB
 
 // --- PROTEKSI HALAMAN ---
 if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
