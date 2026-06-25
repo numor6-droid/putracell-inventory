@@ -3,6 +3,7 @@ session_start();
 include "../config/koneksi.php";
 
 $pesan_error = "";
+$login_sukses = false; // PENGAMAN 1: Inisialisasi variabel di awal
 $remembered_user = isset($_COOKIE['remember_user']) ? $_COOKIE['remember_user'] : "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -34,9 +35,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    if ($login_sukses) {
+    // PENGAMAN 2: Cek pakai isset() biar bebas error "Undefined variable"
+    if (isset($login_sukses) && $login_sukses === true) {
         if ($remember == "on") {
-            setcookie('remember_user', $user, time() + (86400 * 30));
+            setcookie('remember_user', $user, time() + (86400 * 30), "/"); // 30 hari
+            setcookie('remember_role', $data['role'], time() + (86400 * 30), "/"); // 30 hari
         }
         header("Location: ../index.php");
         exit(); 

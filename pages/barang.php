@@ -2,15 +2,15 @@
 session_start();
 include "../config/koneksi.php"; 
 
-
-// --- LOGIKA AUTO-LOGIN DARI COOKIE ---
+// 1. --- LOGIKA AUTO-LOGIN DARI COOKIE  ---
 if (!isset($_SESSION['is_logged_in']) && isset($_COOKIE['remember_user'])) {
     $_SESSION['is_logged_in'] = true;
     $_SESSION['user_email'] = $_COOKIE['remember_user'];
     $_SESSION['role'] = $_COOKIE['remember_role'] ?? 'viewer';
 }
 
-// --- PROTEKSI HALAMAN ---
+// 2. --- PROTEKSI HALAMAN (Satpam Utama) ---
+// Kalau sesinya tetep nggak ada (meski udah dicek cookienya), baru tendang!
 if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
     header("Location: login.php");
     exit();
