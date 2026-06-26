@@ -155,8 +155,16 @@ $ambil_data = mysqli_query($conn, $query);
                     <select name="cabang" class="form-control form-control-sm mr-1" onchange="this.form.submit()">
                         <option value="semua" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'semua') ? 'selected' : ''; ?>>Semua Cabang</option>
                         <option value="Kuningan" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Kuningan') ? 'selected' : ''; ?>>Kuningan</option>
-                        <option value="Jakarta" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Jakarta') ? 'selected' : ''; ?>>Jakarta</option>
+                        <option value="Jakarta" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Jakarta') ? 'selected' : ''; ?>>Jakarta Selatan</option>
+                        <option value="Jakarta Pusat" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Jakarta Pusat') ? 'selected' : ''; ?>>Jakarta Pusat</option>
                         <option value="Bandung" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Bandung') ? 'selected' : ''; ?>>Bandung</option>
+                        <option value="Cirebon" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Cirebon') ? 'selected' : ''; ?>>Cirebon</option>
+                        <option value="Semarang" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Semarang') ? 'selected' : ''; ?>>Semarang</option>
+                        <option value="Yogyakarta" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Yogyakarta') ? 'selected' : ''; ?>>Yogyakarta</option>
+                        <option value="Surabaya" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Surabaya') ? 'selected' : ''; ?>>Surabaya</option>
+                        <option value="Medan" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Medan') ? 'selected' : ''; ?>>Medan</option>
+                        <option value="Makassar" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Makassar') ? 'selected' : ''; ?>>Makassar</option>
+                        <option value="Bali" <?php echo (isset($_GET['cabang']) && $_GET['cabang'] == 'Bali') ? 'selected' : ''; ?>>Bali</option>
                     </select>
                 </form>
                 <?php endif; ?>
