@@ -18,12 +18,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (mysqli_num_rows($query) > 0) {
             $data = mysqli_fetch_assoc($query);
             if ($sandi == $data['password']) {
-                $_SESSION['is_logged_in'] = true;
-                $_SESSION['user_email']   = $data['nama_lengkap'];
-                $_SESSION['role']         = $data['role'];    // Ambil dari DB
-                $_SESSION['cabang']       = $data['cabang'];  // Ambil dari DB
-                $_SESSION['foto_user']    = $data['foto'];
-                $_SESSION['username']     = $user; 
+                $_SESSION['is_logged_in']    = true;
+                $_SESSION['user_email']      = $data['nama_lengkap'];
+                $_SESSION['role']            = $data['role'];    // Ambil dari DB
+                $_SESSION['cabang']          = $data['cabang'];  // Ambil dari DB
+                $_SESSION['foto_user']       = $data['foto'];
+                $_SESSION['foto_background'] = $data['foto_background'];
+                $_SESSION['username']        = $user; 
                 $login_sukses = true;
             } else {
                 $login_sukses = false;
