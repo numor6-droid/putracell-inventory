@@ -43,10 +43,20 @@
           <select name="cabang" class="form-control" required>
             <option value="" disabled selected>-- Pilih Cabang --</option>
             <option value="Kuningan">Kuningan</option>
-            <option value="Jakarta">Jakarta</option>
+            <option value="Jakarta">Jakarta Selatan</option>
+            <option value="Jakarta Pusat">Jakarta Pusat</option>
             <option value="Bandung">Bandung</option>
+            <option value="Cirebon">Cirebon</option>
+            <option value="Semarang">Semarang</option>
+            <option value="Yogyakarta">Yogyakarta</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Medan">Medan</option>
+            <option value="Makassar">Makassar</option>
+            <option value="Bali">Bali</option>
           </select>
-          <div class="input-group-append"><div class="input-group-text" style="width: 40px;"><span class="fas fa-store"></span></div></div>
+          <div class="input-group-append">
+            <div class="input-group-text" style="width: 40px;"><span class="fas fa-store"></span></div>
+          </div>
         </div>
 
         <div class="row mt-4">

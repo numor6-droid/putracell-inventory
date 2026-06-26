@@ -343,9 +343,18 @@ $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; col
             <div class="form-group">
               <label class="small font-weight-bold text-muted text-uppercase">Cabang Toko</label>
               <select name="cabang_toko" class="form-control" required>
+                <option value="" disabled selected>-- Pilih Cabang --</option>
                 <option value="Kuningan">Kuningan</option>
-                <option value="Jakarta">Jakarta</option>
+                <option value="Jakarta">Jakarta Selatan</option>
+                <option value="Jakarta Pusat">Jakarta Pusat</option>
                 <option value="Bandung">Bandung</option>
+                <option value="Cirebon">Cirebon</option>
+                <option value="Semarang">Semarang</option>
+                <option value="Yogyakarta">Yogyakarta</option>
+                <option value="Surabaya">Surabaya</option>
+                <option value="Medan">Medan</option>
+                <option value="Makassar">Makassar</option>
+                <option value="Bali">Bali</option>
               </select>
             </div>
             <?php else : ?>
