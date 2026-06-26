@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       
       <div class="text-center mt-4">
         <p class="mb-0 small text-muted">
-          Belum punya akun admin? <a href="registrasi.php" class="text-primary font-weight-bold">Daftar Akun Baru</a>
+          Belum punya akun? <a href="registrasi.php" class="text-primary font-weight-bold">Daftar Akun Baru</a>
         </p>
       </div>
 

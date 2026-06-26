@@ -2,15 +2,14 @@
 session_start();
 include "../config/koneksi.php"; 
 
-// 1. --- LOGIKA AUTO-LOGIN DARI COOKIE  ---
+// 1.LOGIKA AUTO-LOGIN DARI COOKIE  
 if (!isset($_SESSION['is_logged_in']) && isset($_COOKIE['remember_user'])) {
     $_SESSION['is_logged_in'] = true;
     $_SESSION['user_email'] = $_COOKIE['remember_user'];
     $_SESSION['role'] = $_COOKIE['remember_role'] ?? 'viewer';
 }
 
-// 2. --- PROTEKSI HALAMAN (Satpam Utama) ---
-// Kalau sesinya tetep nggak ada (meski udah dicek cookienya), baru tendang!
+// 2.PROTEKSI HALAMAN (Satpam Utama) 
 if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
     header("Location: login.php");
     exit();
@@ -18,27 +17,42 @@ if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
 
 $user_login = $_SESSION['user_email'] ?? 'Viewer';
 $user_role  = $_SESSION['role'] ?? 'viewer';
-
-// TAMBAHAN: Ambil data cabang user yang lagi login
 $cabang_user = $_SESSION['cabang'] ?? ''; 
-
-// TAMBAHAN: Bikin logika pembeda. Kolomnya 'cabang_toko'
 $kondisi_cabang = ($user_role == 'admin') ? "1=1" : "cabang_toko = '$cabang_user'";
 
-// --- LOGIKA FILTER DATA STOK ---
+// SETUP PAGINATION, FILTER, & SEARCH
 $filter = $_GET['filter'] ?? 'semua';
+$search = $_GET['search'] ?? ''; // TAMBAHAN: Tangkap inputan search
+$batas_per_halaman = 10;
+$halaman_aktif = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
+$data_awal = ($halaman_aktif > 1) ? ($halaman_aktif * $batas_per_halaman) - $batas_per_halaman : 0;
+
+// Logika Filter
 if ($filter == 'menipis') {
-    $query = "SELECT * FROM barang WHERE $kondisi_cabang AND stok > 0 AND stok <= 5 ORDER BY id DESC";
+    $kondisi_filter = "AND stok > 0 AND stok <= 5";
     $judul_tabel = "Katalog Persediaan (Stok Menipis)";
 } elseif ($filter == 'kosong') {
-    $query = "SELECT * FROM barang WHERE $kondisi_cabang AND stok <= 0 ORDER BY id DESC";
+    $kondisi_filter = "AND stok <= 0";
     $judul_tabel = "Katalog Persediaan (Stok Kosong)";
 } else {
-    $query = "SELECT * FROM barang WHERE $kondisi_cabang ORDER BY id DESC";
+    $kondisi_filter = "";
     $judul_tabel = "Katalog Persediaan";
 }
 
-// SISTEM ANTI CRASH
+// TAMBAHAN: Logika Search (Bisa nyari berdasarkan Nama atau Kode Barang)
+$kondisi_search = "";
+if (!empty($search)) {
+    $search_escaped = mysqli_real_escape_string($conn, $search);
+    $kondisi_search = "AND (nama_barang LIKE '%$search_escaped%' OR kode_barang LIKE '%$search_escaped%')";
+}
+
+// 1. Hitung total data (Gabungan Filter & Search)
+$q_hitung = mysqli_query($conn, "SELECT COUNT(*) as jumlah FROM barang WHERE $kondisi_cabang $kondisi_filter $kondisi_search");
+$total_data = mysqli_fetch_assoc($q_hitung)['jumlah'];
+$total_halaman = ceil($total_data / $batas_per_halaman);
+
+// 2. Query Utama
+$query = "SELECT * FROM barang WHERE $kondisi_cabang $kondisi_filter $kondisi_search ORDER BY id DESC LIMIT $data_awal, $batas_per_halaman";
 $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; color: red;'><b>Error DB:</b> " . mysqli_error($conn) . "</div>");
 ?>
 
@@ -102,7 +116,6 @@ $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; col
       <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center border-0">
         <div class="image">
             <?php 
-            // Panggil session foto, kalau kosong pakai default
             $foto_sidebar = !empty($_SESSION['foto_user']) ? $_SESSION['foto_user'] : '../dist/img/default.jpg'; 
             ?>
             <img src="<?php echo $foto_sidebar; ?>" class="img-circle elevation-2" alt="User" style="width: 34px; height: 34px; object-fit: cover; background: #fff;">
@@ -168,16 +181,36 @@ $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; col
           <div class="alert alert-success border-0 text-sm py-2">Produk baru berhasil disimpan ke database!</div>
         <?php endif; ?>
 
-        <div class="mb-3">
-          <span class="text-muted small font-weight-bold mr-2">Filter Data:</span>
-          <a href="barang.php?filter=semua" class="btn btn-sm <?php echo ($filter == 'semua') ? 'btn-primary' : 'btn-light'; ?> px-3 mr-1" style="border-radius:20px;">Semua</a>
-          <a href="barang.php?filter=menipis" class="btn btn-sm <?php echo ($filter == 'menipis') ? 'btn-warning text-white' : 'btn-light'; ?> px-3 mr-1" style="border-radius:20px;">Stok Menipis</a>
-          <a href="barang.php?filter=kosong" class="btn btn-sm <?php echo ($filter == 'kosong') ? 'btn-danger' : 'btn-light'; ?> px-3" style="border-radius:20px;">Stok Kosong</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+              <span class="text-muted small font-weight-bold mr-2">Filter Data:</span>
+              <a href="barang.php?filter=semua&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($filter == 'semua') ? 'btn-primary' : 'btn-light'; ?> px-3 mr-1" style="border-radius:20px;">Semua</a>
+              <a href="barang.php?filter=menipis&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($filter == 'menipis') ? 'btn-warning text-white' : 'btn-light'; ?> px-3 mr-1" style="border-radius:20px;">Stok Menipis</a>
+              <a href="barang.php?filter=kosong&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($filter == 'kosong') ? 'btn-danger' : 'btn-light'; ?> px-3" style="border-radius:20px;">Stok Kosong</a>
+          </div>
+
+          <form action="barang.php" method="GET" class="m-0">
+              <input type="hidden" name="filter" value="<?php echo $filter; ?>">
+              <div class="input-group input-group-sm shadow-sm" style="width: 250px; border-radius: 20px; overflow: hidden;">
+                  <input type="text" name="search" class="form-control border-0" placeholder="Cari nama atau kode..." value="<?php echo htmlspecialchars($search); ?>">
+                  <div class="input-group-append">
+                      <button type="submit" class="btn btn-primary border-0"><i class="fas fa-search"></i></button>
+                  </div>
+              </div>
+          </form>
         </div>
         
         <div class="card shadow-sm">
           <div class="card-header border-0 bg-white py-3">
-            <h5 class="m-0 font-weight-bold text-dark"><i class="fas fa-boxes text-primary mr-2"></i> <?php echo $judul_tabel; ?></h5>
+            <h5 class="m-0 font-weight-bold text-dark">
+                <i class="fas fa-boxes text-primary mr-2"></i> 
+                <?php 
+                echo $judul_tabel; 
+                if (!empty($search)) {
+                    echo " <small class='text-muted ml-1'>(Hasil pencarian: '$search')</small>";
+                }
+                ?>
+            </h5>
           </div>
           <div class="card-body p-0">
             <table class="table table-hover mb-0">
@@ -212,7 +245,7 @@ $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; col
                     <td><span class="status-pill <?php echo $class; ?>"><i class="fas fa-dot-circle mr-1 text-xs"></i> <?php echo $text; ?></span></td>
                     
                     <?php if ($user_role == 'admin') : ?>
-                    <td class="text-center">
+                    <td class="text-center text-nowrap">
                         <a href="edit_barang.php?id=<?php echo $item['id']; ?>" class="btn btn-default btn-xs text-warning border-0 mr-1" title="Edit">
                           <i class="fas fa-edit" style="font-size: 15px;"></i></a>
                         <a href="../actions/hapus_aksi.php?id=<?php echo $item['id']; ?>" class="btn btn-default btn-xs text-danger border-0" title="Hapus" onclick="return confirm('Yakin hapus, bos?')">
@@ -231,6 +264,31 @@ $ambil_data = mysqli_query($conn, $query) or die("<div style='padding: 20px; col
               </tbody>
             </table>
           </div>
+          
+          <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+              <div class="small text-muted font-weight-bold">
+                  Total Produk: <?php echo $total_data; ?> | Halaman <?php echo $halaman_aktif; ?> dari <?php echo $total_halaman; ?>
+              </div>
+              
+              <?php if ($total_halaman > 1): ?>
+              <ul class="pagination pagination-sm m-0">
+                  <li class="page-item <?php if($halaman_aktif <= 1) { echo 'disabled'; } ?>">
+                      <a class="page-link" href="?filter=<?php echo $filter; ?>&search=<?php echo urlencode($search); ?>&halaman=<?php echo ($halaman_aktif - 1); ?>">&laquo; Prev</a>
+                  </li>
+                  
+                  <?php for($x = 1; $x <= $total_halaman; $x++): ?>
+                      <li class="page-item <?php echo ($halaman_aktif == $x) ? 'active' : ''; ?>">
+                          <a class="page-link" href="?filter=<?php echo $filter; ?>&search=<?php echo urlencode($search); ?>&halaman=<?php echo $x; ?>"><?php echo $x; ?></a>
+                      </li>
+                  <?php endfor; ?>
+                  
+                  <li class="page-item <?php if($halaman_aktif >= $total_halaman) { echo 'disabled'; } ?>">
+                      <a class="page-link" href="?filter=<?php echo $filter; ?>&search=<?php echo urlencode($search); ?>&halaman=<?php echo ($halaman_aktif + 1); ?>">Next &raquo;</a>
+                  </li>
+              </ul>
+              <?php endif; ?>
+          </div>
+
         </div>
       </div>
     </div>

@@ -258,11 +258,9 @@ if ($total_produk == 0) {
                                     
                                     <td><span class="badge <?php echo $badge; ?> p-2" style="border-radius: 6px;"><?php echo $req['status_request']; ?></span></td>
                                     
-                                    <!-- PERBAIKAN: class="text-nowrap" agar ikon dan tombol tidak terlempar ke bawah -->
                                     <td class="text-nowrap">
                                         <?php if ($user_role == 'admin'): ?>
                                             <?php if ($req['status_request'] == 'Pending'): ?>
-                                                <!-- PERBAIKAN: Tombol Edit khusus Admin -->
                                                 <a href="pages/edit_request.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-info shadow-sm rounded mr-1" title="Edit Data"><i class="fas fa-edit"></i></a>
                                                 <a href="pages/proses_acc.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-success shadow-sm rounded"><i class="fas fa-check mr-1"></i> Proses Data</a>
                                             <?php else: ?>
@@ -299,7 +297,6 @@ if ($total_produk == 0) {
                     </table>
                 </div>
               </div>
-              <!-- PERBAIKAN: Footer Lihat Semua Data Request biar bisa lihat Halaman ke-2 dst. -->
               <div class="card-footer bg-white text-center border-top">
                 <a href="pages/semua_request.php" class="text-danger small font-weight-bold">Lihat Semua Laporan Request <i class="fas fa-arrow-right ml-1"></i></a>
               </div>
@@ -378,11 +375,17 @@ if ($total_produk == 0) {
 
             <div class="card bg-white shadow-sm border-0 mb-4">
               <div class="card-body">
-                <h6 class="font-weight-bold mb-3 text-dark"><i class="fas fa-newspaper text-warning mr-2"></i> Pengumuman Pusat</h6>
+                <h6 class="font-weight-bold mb-3 text-dark d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-newspaper text-warning mr-2"></i> Pengumuman Pusat</span>
+                    <?php if ($user_role == 'admin'): ?>
+                        <button class="btn btn-xs btn-primary shadow-sm" data-toggle="modal" data-target="#modalPengumuman" style="border-radius: 4px;"><i class="fas fa-plus mr-1"></i> Buat</button>
+                    <?php endif; ?>
+                </h6>
                 
                 <?php 
                 if ($data_pengumuman && mysqli_num_rows($data_pengumuman) > 0):
                   while ($news = mysqli_fetch_assoc($data_pengumuman)): 
+                    $id_pengumuman = $news['id'] ?? '';
                     $status = $news['status'] ?? 'Info';
                     $judul = $news['judul'] ?? 'Pengumuman Baru';
                     $isi = $news['isi_memo'] ?? $news['isi_pengumuman'] ?? '';
@@ -392,10 +395,17 @@ if ($total_produk == 0) {
                     elseif ($status_lower == 'info') { $color = '#f59e0b'; $badge_class = 'badge-warning'; }
                     else { $color = '#10b981'; $badge_class = 'badge-success'; }
                 ?>
-                  <div class="news-item" style="border-left-color: <?php echo $color; ?>;">
+                  <div class="news-item" style="border-left-color: <?php echo $color; ?>; position: relative;">
                     <span class="badge <?php echo $badge_class; ?> text-xs mb-1"><?php echo $status; ?></span>
-                    <p class="mb-0 small font-weight-bold text-dark"><?php echo $judul; ?></p>
-                    <small class="text-muted"><?php echo $isi; ?></small>
+                    
+                    <?php if ($user_role == 'admin'): ?>
+                        <a href="actions/hapus_pengumuman.php?id=<?php echo $id_pengumuman; ?>" class="text-danger float-right" title="Hapus Pengumuman" onclick="return confirm('Hapus pengumuman ini secara permanen?');">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    <?php endif; ?>
+
+                    <p class="mb-0 small font-weight-bold text-dark pr-3"><?php echo $judul; ?></p>
+                    <small class="text-muted d-block mt-1"><?php echo $isi; ?></small>
                   </div>
                 <?php 
                   endwhile;
@@ -438,9 +448,8 @@ if ($total_produk == 0) {
                   ?>
                 </div>
               </div>
-              <!-- PERBAIKAN: Footer Lihat Semua Aktivitas biar bisa lihat Halaman ke-2 dst. -->
+              
               <div class="card-footer bg-white text-center border-top">
-                <a href="pages/semua_log.php" class="text-secondary small font-weight-bold">Lihat Semua Aktivitas <i class="fas fa-arrow-right ml-1"></i></a>
               </div>
             </div>
 
@@ -455,6 +464,42 @@ if ($total_produk == 0) {
     <strong>Copyright &copy; 2026 Putra Cell Inventory.</strong> All rights reserved.
   </footer>
 </div>
+
+<?php if ($user_role == 'admin'): ?>
+<div class="modal fade" id="modalPengumuman">
+  <div class="modal-dialog">
+    <div class="modal-content border-0" style="border-radius: 14px;">
+      <div class="modal-header bg-light border-0 py-3">
+        <h5 class="modal-title font-weight-bold text-dark"><i class="fas fa-bullhorn text-warning mr-2"></i> Buat Pengumuman Baru</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <form action="actions/tambah_pengumuman.php" method="POST">
+        <div class="modal-body py-4">
+          <div class="form-group">
+            <label class="small font-weight-bold text-muted text-uppercase">Judul</label>
+            <input type="text" name="judul" class="form-control" placeholder="Contoh: Info Restock Bulanan" required>
+          </div>
+          <div class="form-group">
+            <label class="small font-weight-bold text-muted text-uppercase">Kategori / Status</label>
+            <select name="status" class="form-control" required>
+              <option value="Info">Info (Kuning)</option>
+              <option value="Penting">Penting (Merah)</option>
+              <option value="Sistem">Sistem (Hijau)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="small font-weight-bold text-muted text-uppercase">Isi Pengumuman</label>
+            <textarea name="isi_pengumuman" class="form-control" rows="3" placeholder="Ketik isi pengumuman di sini..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light py-2">
+          <button type="submit" class="btn btn-primary font-weight-bold px-4" style="border-radius: 6px;">Sebarkan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
