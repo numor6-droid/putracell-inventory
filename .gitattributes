@@ -1,0 +1,4 @@
+# Menyembunyikan file library dari statistik GitHub
+plugins/** linguist-vendored
+dist/js/** linguist-vendored
+node_modules/** linguist-vendored
